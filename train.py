@@ -14,6 +14,14 @@ from tensorflow.keras.losses import BinaryCrossentropy, CategoricalCrossentropy
 from tensorflow.keras.metrics import Accuracy, MeanIoU
 import logging
 
+# Memory optimization for GTX 1660 SUPER
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        tf.config.experimental.set_memory_growth(gpus[0], True)
+    except RuntimeError as e:
+        print(f"Memory growth setup failed: {e}")
+
 # Import project modules
 from config import *
 from utils import *
@@ -58,7 +66,7 @@ class BrainTumorTrainer:
         
         # Build model
         unet = UNet(input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
-                   num_classes=1, filters=32)  # Binary segmentation with reduced filters
+                   num_classes=1, filters=32)  # Binary segmentation (memory optimized)
         model = unet.build_model()
         
         # Compile model
@@ -177,7 +185,7 @@ class BrainTumorTrainer:
         
         # Build model
         attention_unet = AttentionUNet(input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
-                                     num_classes=1, filters=32)  # Binary segmentation with reduced filters
+                                     num_classes=1, filters=32)  # Binary segmentation (memory optimized)
         model = attention_unet.build_model()
         
         # Compile model

@@ -187,7 +187,7 @@ class BrainTumorDataLoader:
                     # Apply augmentation
                     for i in range(batch_size):
                         # Random rotation
-                        angle = np.random.uniform(-20, 20)
+                        angle = np.random.uniform(-15, 15)
                         h, w = batch_X[i].shape[:2]
                         center = (w // 2, h // 2)
                         M = cv2.getRotationMatrix2D(center, angle, 1.0)
@@ -213,6 +213,18 @@ class BrainTumorDataLoader:
                                 batch_y[i] = np.expand_dims(mask_flipped, axis=-1)
                             else:
                                 batch_y[i] = cv2.flip(batch_y[i], 1)
+                        
+                        # Brightness and contrast augmentation (only for images, not masks)
+                        if np.random.random() > 0.5:
+                            # Brightness adjustment
+                            brightness_factor = np.random.uniform(0.8, 1.2)
+                            batch_X[i] = np.clip(batch_X[i] * brightness_factor, 0, 1)
+                        
+                        if np.random.random() > 0.5:
+                            # Contrast adjustment
+                            contrast_factor = np.random.uniform(0.8, 1.2)
+                            mean = np.mean(batch_X[i])
+                            batch_X[i] = np.clip((batch_X[i] - mean) * contrast_factor + mean, 0, 1)
                 
                 yield batch_X, batch_y
         

@@ -31,7 +31,7 @@ NUM_CLASSES = 4  # glioma, meningioma, no_tumor, pituitary
 SEGMENTATION_CLASSES = 2  # background, tumor
 
 # Training parameters
-BATCH_SIZE = 8   # Further reduced for U-Net memory requirements
+BATCH_SIZE = 8   # Reduced for U-Net memory requirements (GTX 1660 SUPER 6GB)
 EPOCHS = 50      # Reduced for faster training
 LEARNING_RATE = 0.001
 VALIDATION_SPLIT = 0.2
