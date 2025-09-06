@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+venv_linux/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large files - models and datasets
+*.h5
+*.hdf5
+*.keras
+brisc2025/
+outputs/models/
+outputs/plots/
+
+# Temporary
+*.tmp
+*.log
