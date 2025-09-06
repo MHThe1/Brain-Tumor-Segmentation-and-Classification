@@ -45,38 +45,65 @@ def plot_training_history(history, output_dir, model_name):
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
     fig.suptitle(f'Training History - {model_name}', fontsize=16)
     
-    # Plot training & validation accuracy
-    axes[0, 0].plot(history.history['accuracy'])
-    axes[0, 0].plot(history.history['val_accuracy'])
-    axes[0, 0].set_title('Model Accuracy')
-    axes[0, 0].set_ylabel('Accuracy')
-    axes[0, 0].set_xlabel('Epoch')
-    axes[0, 0].legend(['Train', 'Validation'], loc='upper left')
-    
-    # Plot training & validation loss
-    axes[0, 1].plot(history.history['loss'])
-    axes[0, 1].plot(history.history['val_loss'])
-    axes[0, 1].set_title('Model Loss')
-    axes[0, 1].set_ylabel('Loss')
-    axes[0, 1].set_xlabel('Epoch')
-    axes[0, 1].legend(['Train', 'Validation'], loc='upper left')
-    
-    # Plot segmentation metrics if available
-    if 'segmentation_loss' in history.history:
-        axes[1, 0].plot(history.history['segmentation_loss'])
-        axes[1, 0].plot(history.history['val_segmentation_loss'])
-        axes[1, 0].set_title('Segmentation Loss')
+    # Check if this is a segmentation model (has dice_coefficient) or classification model (has accuracy)
+    if 'dice_coefficient' in history.history:
+        # Segmentation model plotting
+        # Plot training & validation dice coefficient
+        axes[0, 0].plot(history.history['dice_coefficient'])
+        axes[0, 0].plot(history.history['val_dice_coefficient'])
+        axes[0, 0].set_title('Dice Coefficient')
+        axes[0, 0].set_ylabel('Dice Coefficient')
+        axes[0, 0].set_xlabel('Epoch')
+        axes[0, 0].legend(['Train', 'Validation'], loc='upper left')
+        
+        # Plot training & validation IoU coefficient
+        axes[0, 1].plot(history.history['iou_coefficient'])
+        axes[0, 1].plot(history.history['val_iou_coefficient'])
+        axes[0, 1].set_title('IoU Coefficient')
+        axes[0, 1].set_ylabel('IoU Coefficient')
+        axes[0, 1].set_xlabel('Epoch')
+        axes[0, 1].legend(['Train', 'Validation'], loc='upper left')
+        
+        # Plot training & validation loss
+        axes[1, 0].plot(history.history['loss'])
+        axes[1, 0].plot(history.history['val_loss'])
+        axes[1, 0].set_title('Model Loss')
         axes[1, 0].set_ylabel('Loss')
         axes[1, 0].set_xlabel('Epoch')
         axes[1, 0].legend(['Train', 'Validation'], loc='upper left')
-    
-    if 'segmentation_dice_coef' in history.history:
-        axes[1, 1].plot(history.history['segmentation_dice_coef'])
-        axes[1, 1].plot(history.history['val_segmentation_dice_coef'])
-        axes[1, 1].set_title('Segmentation Dice Coefficient')
-        axes[1, 1].set_ylabel('Dice Coefficient')
-        axes[1, 1].set_xlabel('Epoch')
-        axes[1, 1].legend(['Train', 'Validation'], loc='upper left')
+        
+        # Hide the last subplot for segmentation
+        axes[1, 1].set_visible(False)
+        
+    else:
+        # Classification model plotting
+        # Plot training & validation accuracy
+        axes[0, 0].plot(history.history['accuracy'])
+        axes[0, 0].plot(history.history['val_accuracy'])
+        axes[0, 0].set_title('Model Accuracy')
+        axes[0, 0].set_ylabel('Accuracy')
+        axes[0, 0].set_xlabel('Epoch')
+        axes[0, 0].legend(['Train', 'Validation'], loc='upper left')
+        
+        # Plot training & validation loss
+        axes[0, 1].plot(history.history['loss'])
+        axes[0, 1].plot(history.history['val_loss'])
+        axes[0, 1].set_title('Model Loss')
+        axes[0, 1].set_ylabel('Loss')
+        axes[0, 1].set_xlabel('Epoch')
+        axes[0, 1].legend(['Train', 'Validation'], loc='upper left')
+        
+        # Plot learning rate if available
+        if 'learning_rate' in history.history:
+            axes[1, 0].plot(history.history['learning_rate'])
+            axes[1, 0].set_title('Learning Rate')
+            axes[1, 0].set_ylabel('Learning Rate')
+            axes[1, 0].set_xlabel('Epoch')
+        else:
+            axes[1, 0].set_visible(False)
+        
+        # Hide the last subplot for classification
+        axes[1, 1].set_visible(False)
     
     plt.tight_layout()
     plot_path = os.path.join(output_dir, "plots", f"{model_name}_training_history.png")

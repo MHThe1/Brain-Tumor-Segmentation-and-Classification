@@ -58,7 +58,7 @@ class BrainTumorTrainer:
         
         # Build model
         unet = UNet(input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
-                   num_classes=SEGMENTATION_CLASSES)
+                   num_classes=1, filters=32)  # Binary segmentation with reduced filters
         model = unet.build_model()
         
         # Compile model
@@ -177,7 +177,7 @@ class BrainTumorTrainer:
         
         # Build model
         attention_unet = AttentionUNet(input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
-                                     num_classes=SEGMENTATION_CLASSES)
+                                     num_classes=1, filters=32)  # Binary segmentation with reduced filters
         model = attention_unet.build_model()
         
         # Compile model

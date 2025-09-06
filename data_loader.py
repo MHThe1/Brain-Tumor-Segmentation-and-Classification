@@ -192,12 +192,27 @@ class BrainTumorDataLoader:
                         center = (w // 2, h // 2)
                         M = cv2.getRotationMatrix2D(center, angle, 1.0)
                         batch_X[i] = cv2.warpAffine(batch_X[i], M, (w, h))
-                        batch_y[i] = cv2.warpAffine(batch_y[i], M, (w, h))
+                        
+                        # Handle mask shape for rotation
+                        if len(batch_y[i].shape) == 3:
+                            # Mask has shape (h, w, 1), squeeze to (h, w) for cv2
+                            mask_2d = np.squeeze(batch_y[i], axis=-1)
+                            mask_rotated = cv2.warpAffine(mask_2d, M, (w, h))
+                            batch_y[i] = np.expand_dims(mask_rotated, axis=-1)
+                        else:
+                            batch_y[i] = cv2.warpAffine(batch_y[i], M, (w, h))
                         
                         # Random flip
                         if np.random.random() > 0.5:
                             batch_X[i] = cv2.flip(batch_X[i], 1)
-                            batch_y[i] = cv2.flip(batch_y[i], 1)
+                            
+                            # Handle mask shape for flip
+                            if len(batch_y[i].shape) == 3:
+                                mask_2d = np.squeeze(batch_y[i], axis=-1)
+                                mask_flipped = cv2.flip(mask_2d, 1)
+                                batch_y[i] = np.expand_dims(mask_flipped, axis=-1)
+                            else:
+                                batch_y[i] = cv2.flip(batch_y[i], 1)
                 
                 yield batch_X, batch_y
         
