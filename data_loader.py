@@ -224,19 +224,42 @@ def load_test_data(data_loader, test_images_dir, test_masks_dir=None):
     test_images = []
     test_masks = [] if test_masks_dir else None
     
-    # Load test images
-    for img_file in os.listdir(test_images_dir):
-        if img_file.lower().endswith(('.jpg', '.jpeg', '.png')):
-            img_path = os.path.join(test_images_dir, img_file)
-            try:
-                image = cv2.imread(img_path)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                image = cv2.resize(image, (data_loader.img_width, data_loader.img_height))
-                image = image.astype(np.float32) / 255.0
-                test_images.append(image)
-            except Exception as e:
-                logger.error(f"Error loading test image {img_path}: {e}")
-                continue
+    # Load test images (handle both flat directory and subdirectory structure)
+    if os.path.isdir(test_images_dir):
+        # Check if it's a flat directory or has subdirectories
+        subdirs = [d for d in os.listdir(test_images_dir) 
+                  if os.path.isdir(os.path.join(test_images_dir, d))]
+        
+        if subdirs:
+            # Load from subdirectories (classification task structure)
+            for subdir in subdirs:
+                subdir_path = os.path.join(test_images_dir, subdir)
+                for img_file in os.listdir(subdir_path):
+                    if img_file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                        img_path = os.path.join(subdir_path, img_file)
+                        try:
+                            image = cv2.imread(img_path)
+                            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                            image = cv2.resize(image, (data_loader.img_width, data_loader.img_height))
+                            image = image.astype(np.float32) / 255.0
+                            test_images.append(image)
+                        except Exception as e:
+                            logger.error(f"Error loading test image {img_path}: {e}")
+                            continue
+        else:
+            # Load from flat directory (segmentation task structure)
+            for img_file in os.listdir(test_images_dir):
+                if img_file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    img_path = os.path.join(test_images_dir, img_file)
+                    try:
+                        image = cv2.imread(img_path)
+                        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                        image = cv2.resize(image, (data_loader.img_width, data_loader.img_height))
+                        image = image.astype(np.float32) / 255.0
+                        test_images.append(image)
+                    except Exception as e:
+                        logger.error(f"Error loading test image {img_path}: {e}")
+                        continue
     
     test_images = np.array(test_images)
     logger.info(f"Loaded {len(test_images)} test images")

@@ -7,6 +7,7 @@ BRACU CSE428 Academic Project
 import os
 import sys
 import argparse
+import glob
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -67,7 +68,7 @@ def run_inference_on_image(image_path, model_type="simple_cnn"):
     print(f"✅ Image loaded and preprocessed: {image_batch.shape}")
     
     # Load model (you'll need to have trained models available)
-    model_path = f"outputs/run_*/models/{model_type}_classification_best.h5"
+    model_path = f"outputs/run_*/models/{model_type}_classification_best.keras"
     
     try:
         # Find the latest model
@@ -146,7 +147,7 @@ def run_batch_inference(image_dir, model_type="simple_cnn"):
     print(f"📸 Found {len(image_files)} images")
     
     # Load model once
-    model_path = f"outputs/run_*/models/{model_type}_classification_best.h5"
+    model_path = f"outputs/run_*/models/{model_type}_classification_best.keras"
     model_files = glob.glob(model_path)
     if not model_files:
         print(f"❌ No trained model found for {model_type}")

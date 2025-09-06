@@ -31,8 +31,8 @@ NUM_CLASSES = 4  # glioma, meningioma, no_tumor, pituitary
 SEGMENTATION_CLASSES = 2  # background, tumor
 
 # Training parameters
-BATCH_SIZE = 32
-EPOCHS = 100
+BATCH_SIZE = 16  # Reduced for 16GB RAM
+EPOCHS = 50      # Reduced for faster training
 LEARNING_RATE = 0.001
 VALIDATION_SPLIT = 0.2
 

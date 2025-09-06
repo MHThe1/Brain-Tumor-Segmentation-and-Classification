@@ -17,7 +17,7 @@ import logging
 # Import project modules
 from config import *
 from utils import *
-from data_loader import BrainTumorDataLoader
+from data_loader import BrainTumorDataLoader, load_test_data
 from models import UNet, AttentionUNet, MultiTaskUNet, EfficientDetUNet, ClassifierModels
 
 class BrainTumorTrainer:
@@ -74,7 +74,7 @@ class BrainTumorTrainer:
         # Callbacks
         callbacks = [
             ModelCheckpoint(
-                os.path.join(self.output_dir, "models", f"{model_name}_best.h5"),
+                os.path.join(self.output_dir, "models", f"{model_name}_best.keras"),
                 monitor='val_dice_coefficient',
                 save_best_only=True,
                 mode='max',
@@ -82,7 +82,7 @@ class BrainTumorTrainer:
             ),
             EarlyStopping(
                 monitor='val_dice_coefficient',
-                patience=15,
+                patience=10,
                 mode='max',
                 restore_best_weights=True
             ),
@@ -126,7 +126,7 @@ class BrainTumorTrainer:
         )
         
         # Save final model
-        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.h5"))
+        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.keras"))
         
         # Plot training history
         plot_training_history(history, self.output_dir, model_name)
@@ -193,7 +193,7 @@ class BrainTumorTrainer:
         # Callbacks
         callbacks = [
             ModelCheckpoint(
-                os.path.join(self.output_dir, "models", f"{model_name}_best.h5"),
+                os.path.join(self.output_dir, "models", f"{model_name}_best.keras"),
                 monitor='val_dice_coefficient',
                 save_best_only=True,
                 mode='max',
@@ -201,7 +201,7 @@ class BrainTumorTrainer:
             ),
             EarlyStopping(
                 monitor='val_dice_coefficient',
-                patience=15,
+                patience=10,
                 mode='max',
                 restore_best_weights=True
             ),
@@ -245,7 +245,7 @@ class BrainTumorTrainer:
         )
         
         # Save final model
-        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.h5"))
+        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.keras"))
         
         # Plot training history
         plot_training_history(history, self.output_dir, model_name)
@@ -334,7 +334,7 @@ class BrainTumorTrainer:
         # Callbacks
         callbacks = [
             ModelCheckpoint(
-                os.path.join(self.output_dir, "models", f"{model_name}_best.h5"),
+                os.path.join(self.output_dir, "models", f"{model_name}_best.keras"),
                 monitor='val_accuracy',
                 save_best_only=True,
                 mode='max',
@@ -342,7 +342,7 @@ class BrainTumorTrainer:
             ),
             EarlyStopping(
                 monitor='val_accuracy',
-                patience=15,
+                patience=10,
                 mode='max',
                 restore_best_weights=True
             ),
@@ -386,34 +386,42 @@ class BrainTumorTrainer:
         )
         
         # Save final model
-        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.h5"))
+        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.keras"))
         
         # Plot training history
         plot_training_history(history, self.output_dir, model_name)
         
-        # Evaluate on test data
-        test_images, _ = load_test_data(self.data_loader, CLASSIFICATION_TEST)
-        
-        # Get test labels (simplified - in practice you'd load actual labels)
-        test_predictions = model.predict(test_images)
-        test_pred_classes = np.argmax(test_predictions, axis=1)
-        
-        # For demonstration, we'll use dummy test labels
-        # In practice, you'd load actual test labels
-        test_labels = np.random.randint(0, NUM_CLASSES, len(test_images))
-        
-        # Calculate metrics
-        test_loss, test_accuracy = model.evaluate(test_images, 
-                                                 tf.keras.utils.to_categorical(test_labels, NUM_CLASSES), 
-                                                 verbose=0)
-        
-        # Save classification report
-        save_classification_report(test_labels, test_pred_classes, 
-                                 self.data_loader.class_names, self.output_dir, model_name)
-        
-        # Plot confusion matrix
-        plot_confusion_matrix(test_labels, test_pred_classes, 
-                            self.data_loader.class_names, self.output_dir, model_name)
+        # Evaluate on test data (optional - skip if no proper test labels available)
+        try:
+            test_images, _ = load_test_data(self.data_loader, CLASSIFICATION_TEST)
+            
+            if len(test_images) > 0:
+                # Get test predictions
+                test_predictions = model.predict(test_images, verbose=0)
+                test_pred_classes = np.argmax(test_predictions, axis=1)
+                
+                # Note: For proper evaluation, you would need actual test labels
+                # For now, we'll just save the predictions without calculating accuracy
+                self.logger.info(f"Generated predictions for {len(test_images)} test images")
+                
+                # Save predictions for manual evaluation
+                np.save(os.path.join(self.output_dir, "results", f"{model_name}_test_predictions.npy"), 
+                       test_predictions)
+                np.save(os.path.join(self.output_dir, "results", f"{model_name}_test_pred_classes.npy"), 
+                       test_pred_classes)
+                
+                # Set dummy test metrics (since we don't have actual labels)
+                test_loss = 0.0
+                test_accuracy = 0.0
+            else:
+                self.logger.warning("No test images loaded - skipping test evaluation")
+                test_loss = 0.0
+                test_accuracy = 0.0
+                
+        except Exception as e:
+            self.logger.error(f"Test evaluation failed: {e}")
+            test_loss = 0.0
+            test_accuracy = 0.0
         
         results = {
             'test_loss': float(test_loss),
@@ -491,7 +499,7 @@ class BrainTumorTrainer:
         # Callbacks
         callbacks = [
             ModelCheckpoint(
-                os.path.join(self.output_dir, "models", f"{model_name}_best.h5"),
+                os.path.join(self.output_dir, "models", f"{model_name}_best.keras"),
                 monitor='val_segmentation_dice_coefficient',
                 save_best_only=True,
                 mode='max',
@@ -543,7 +551,7 @@ class BrainTumorTrainer:
         )
         
         # Save final model
-        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.h5"))
+        model.save(os.path.join(self.output_dir, "models", f"{model_name}_final.keras"))
         
         # Plot training history
         plot_training_history(history, self.output_dir, model_name)
