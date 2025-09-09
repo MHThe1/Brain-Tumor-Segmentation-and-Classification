@@ -26,7 +26,7 @@ if gpus:
 from config import *
 from utils import *
 from data_loader import BrainTumorDataLoader, load_test_data
-from models import UNet, AttentionUNet, MultiTaskUNet, EfficientDetUNet, ClassifierModels
+from models import UNet, AttentionUNet, MultiTaskUNet, EfficientDetUNet, ClassifierModels, AttentionLoss
 
 class BrainTumorTrainer:
     """
@@ -183,16 +183,37 @@ class BrainTumorTrainer:
             X_train, y_train, X_val, y_val, BATCH_SIZE
         )
         
-        # Build model
-        attention_unet = AttentionUNet(input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
-                                     num_classes=1, filters=32)  # Binary segmentation (memory optimized)
+        # Build enhanced model with configurable options
+        attention_unet = AttentionUNet(
+            input_shape=(IMG_HEIGHT, IMG_WIDTH, IMG_CHANNELS), 
+            num_classes=1, 
+            filters=32,  # Binary segmentation (memory optimized)
+            use_self_attention=True,
+            use_channel_attention=True,
+            use_deep_supervision=True,
+            attention_type='both'  # Use both spatial and channel attention
+        )
         model = attention_unet.build_model()
+        
+        # Prepare loss function for deep supervision
+        if attention_unet.use_deep_supervision:
+            # Deep supervision loss
+            loss_fn = AttentionLoss.deep_supervision_loss(alpha=0.4, beta=0.3, gamma=0.3)
+            metrics = {
+                'main_output': [dice_coefficient, iou_coefficient],
+                'aux_output_4': [dice_coefficient, iou_coefficient],
+                'aux_output_3': [dice_coefficient, iou_coefficient],
+                'aux_output_2': [dice_coefficient, iou_coefficient]
+            }
+        else:
+            loss_fn = BinaryCrossentropy()
+            metrics = [dice_coefficient, iou_coefficient]
         
         # Compile model
         model.compile(
             optimizer=Adam(learning_rate=LEARNING_RATE),
-            loss=BinaryCrossentropy(),
-            metrics=[dice_coefficient, iou_coefficient]
+            loss=loss_fn,
+            metrics=metrics
         )
         
         # Save model summary
